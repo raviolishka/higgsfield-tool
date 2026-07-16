@@ -25,42 +25,46 @@ exports.handler = async (event) => {
     };
   }
 
-  return new Promise((resolve) => {
-    const bodyData = event.body;
+  try {
+    // Parse and re-stringify to ensure valid JSON
+    const parsed = JSON.parse(event.body);
+    const bodyData = JSON.stringify(parsed);
 
-    const options = {
-      hostname: "api.anthropic.com",
-      path: "/v1/messages",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "Content-Length": Buffer.byteLength(bodyData),
-      },
+    const result = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: "api.anthropic.com",
+        path: "/v1/messages",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "Content-Length": Buffer.byteLength(bodyData),
+        },
+      };
+
+      const req = https.request(options, (res) => {
+        let data = "";
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => resolve({ status: res.statusCode, body: data }));
+      });
+
+      req.on("error", (err) => reject(err));
+      req.write(bodyData);
+      req.end();
+    });
+
+    return {
+      statusCode: result.status,
+      headers,
+      body: result.body,
     };
 
-    const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        resolve({
-          statusCode: res.statusCode,
-          headers,
-          body: data,
-        });
-      });
-    });
-
-    req.on("error", (err) => {
-      resolve({
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: err.message }),
-      });
-    });
-
-    req.write(bodyData);
-    req.end();
-  });
+  } catch (err) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: "Invalid request: " + err.message }),
+    };
+  }
 };
