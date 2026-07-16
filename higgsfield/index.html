@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Higgsfield Prompt Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e0e16;color:#f0f0ff;font-family:'Inter',system-ui,sans-serif;padding-bottom:4rem;min-height:100vh}
+:root{--bg:#0e0e16;--panel:#14141f;--card:#1c1c2a;--border:#28283c;--border-a:#6c5ce7;--accent:#6c5ce7;--asoft:#1e1b3a;--atext:#a29bfe;--text:#f0f0ff;--text2:#8080aa;--muted:#50507a;--success:#00b894;--ssoft:#0c2820;--danger:#e84393;--dsoft:#2a0f1e}
+.hdr{border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:12px}
+.hico{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:16px}
+.htitle{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.hsub{font-size:10px;color:var(--muted)}
+.main{max-width:680px;margin:0 auto;padding:1.25rem 1rem}
+.sec-lbl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.sec-lbl svg{flex-shrink:0}
+
+/* Slots */
+.slots-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+.slot{border:1px dashed var(--border);border-radius:9px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:var(--panel);position:relative;overflow:hidden;transition:border-color .15s}
+.slot:hover{border-color:var(--text2)}
+.slot.hi{border-style:solid;cursor:default}
+.slot img{width:100%;height:100%;object-fit:cover;display:block}
+.slot-badge{position:absolute;bottom:5px;left:5px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;color:#fff}
+.slot-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.add-slot{border:1px dashed var(--border);border-radius:9px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:var(--panel);transition:all .15s}
+.add-slot:hover{border-color:var(--text2);background:var(--card)}
+.add-txt{font-size:10px;color:var(--muted)}
+
+/* Tags */
+.tags-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;min-height:26px;align-items:center}
+.tag-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:grab;user-select:none;border:1px solid transparent}
+.tag-pill:active{opacity:.7;cursor:grabbing}
+.tag-hint{font-size:10px;color:var(--muted)}
+
+/* Description */
+.desc-area{width:100%;min-height:130px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;outline:none;line-height:1.65;transition:border-color .15s;margin-bottom:4px}
+.desc-area:focus{border-color:var(--border-a)}
+.desc-hint{font-size:10px;color:var(--muted);margin-bottom:1.25rem}
+
+/* Config */
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.cfg-block{display:flex;flex-direction:column;gap:6px}
+.ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px}
+.ar-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border-radius:7px;border:1px solid var(--border);background:var(--panel);cursor:pointer;transition:all .1s}
+.ar-item:hover{border-color:var(--text2)}
+.ar-item.on{border-color:var(--border-a);background:var(--asoft)}
+.ar-box{border:1.5px solid var(--text2);border-radius:2px;background:var(--border)}
+.ar-item.on .ar-box{border-color:var(--accent);background:rgba(108,92,231,.2)}
+.ar-lbl{font-size:9px;color:var(--muted);font-weight:600}
+.ar-item.on .ar-lbl{color:var(--atext)}
+.q-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.q-item{padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--panel);cursor:pointer;text-align:center;transition:all .1s}
+.q-item:hover{border-color:var(--text2)}
+.q-item.on{border-color:var(--border-a);background:var(--asoft)}
+.qmain{font-size:15px;font-weight:600;color:var(--text);display:block}
+.q-item.on .qmain{color:var(--atext)}
+.qsub{font-size:9px;color:var(--muted);display:block;margin-top:1px}
+
+/* Generate */
+.gen-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.gen-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.gen-btn:hover{opacity:.88}
+.gen-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;opacity:1}
+.ghint{font-size:10px;color:var(--muted)}
+.sinfo{padding:7px 10px;background:var(--asoft);border:1px solid var(--border-a);border-radius:7px;font-size:11px;color:var(--atext);margin-bottom:8px}
+.serr{padding:7px 10px;background:var(--dsoft);border:1px solid rgba(232,67,147,.3);border-radius:7px;font-size:11px;color:var(--danger);margin-bottom:8px}
+.out-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.875rem 1.1rem}
+.out-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.out-lbl{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:5px}
+.cp-btn{font-size:11px;padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:var(--panel);color:var(--text2);cursor:pointer}
+.cp-btn.ok{border-color:var(--success);background:var(--ssoft);color:var(--success)}
+pre{font-family:'JetBrains Mono','Fira Code',monospace;font-size:10.5px;color:var(--text);background:var(--bg);border-radius:8px;padding:.75rem 1rem;overflow:auto;max-height:400px;border:1px solid var(--border);white-space:pre-wrap;word-break:break-word;margin:0;line-height:1.65}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hico">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
+  <div>
+    <div class="htitle">Higgsfield Prompt Generator</div>
+    <div class="hsub">Upload images · reference them in your description · generate the JSON</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Images -->
+  <div class="sec-lbl">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    Images
+  </div>
+  <div class="slots-wrap" id="slots-wrap"></div>
+
+  <!-- Tags -->
+  <div class="sec-lbl">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    Image tags — drag or click to insert in description
+  </div>
+  <div class="tags-row" id="tags-row">
+    <span class="tag-hint">Upload images to see tags</span>
+  </div>
+
+  <!-- Description -->
+  <div class="sec-lbl">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+    Scene description
+  </div>
+  <textarea class="desc-area" id="desc-area" placeholder="Describe what you want to create. Reference your images with @Imagen1, @Imagen2, etc.&#10;&#10;You can drag the tags above directly here, or type them manually. Write in any language — the JSON will always be in English.&#10;&#10;Examples:&#10;· Put the person from @Imagen1 in the location of @Imagen2, wearing the outfit from @Imagen3&#10;· Transform @Imagen1 into a snowy winter night&#10;· Place the person from @Imagen1 doing the pose from @Imagen2"></textarea>
+  <div class="desc-hint">Tip: @Imagen1 = identity / main subject · @Imagen2 = scene or pose · @Imagen3+ = outfits, angles or extra elements</div>
+
+  <!-- Config -->
+  <div class="cfg-grid">
+    <div class="cfg-block">
+      <div class="sec-lbl">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Aspect ratio <span id="ar-req" style="color:var(--danger);font-size:9px;text-transform:none;letter-spacing:0"> — required</span>
+      </div>
+      <div class="ar-grid" id="ar-grid"></div>
+    </div>
+    <div class="cfg-block">
+      <div class="sec-lbl">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Output quality <span id="q-req" style="color:var(--danger);font-size:9px;text-transform:none;letter-spacing:0"> — required</span>
+      </div>
+      <div class="q-row">
+        <div class="q-item" id="q-1K" onclick="selQ('1K')"><span class="qmain">1K</span><span class="qsub">fast</span></div>
+        <div class="q-item" id="q-2K" onclick="selQ('2K')"><span class="qmain">2K</span><span class="qsub">balanced</span></div>
+        <div class="q-item" id="q-4K" onclick="selQ('4K')"><span class="qmain">4K</span><span class="qsub">ultra</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <div class="gen-row">
+    <button class="gen-btn" id="gen-btn" onclick="doGen()" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Generate JSON prompt
+    </button>
+    <span class="ghint" id="ghint">Upload at least one image and add a description</span>
+  </div>
+  <div id="stbox"></div>
+  <div id="outbox"></div>
+
+</div>
+
+<input type="file" id="fi" accept="image/*" multiple style="display:none" onchange="loadFiles(this.files);this.value=''">
+
+<script>
+const PROXY='/.netlify/functions/generate-prompt';
+const COLORS=['#e84393','#185FA5','#0F6E56','#854F0B','#534AB7','#993C1D','#639922','#BA7517'];
+const LCOLORS=['rgba(232,67,147,.15)','rgba(24,95,165,.15)','rgba(15,110,86,.15)','rgba(133,79,11,.15)','rgba(83,74,183,.15)','rgba(153,60,29,.15)','rgba(99,153,34,.15)','rgba(186,117,23,.15)'];
+const ARS=[{l:'Auto',w:24,h:19},{l:'1:1',w:19,h:19},{l:'3:4',w:15,h:20},{l:'4:3',w:22,h:17},{l:'2:3',w:14,h:21},{l:'3:2',w:22,h:15},{l:'9:16',w:12,h:21},{l:'16:9',w:26,h:15},{l:'5:4',w:20,h:16},{l:'4:5',w:16,h:20},{l:'21:9',w:28,h:12}];
+
+const S={imgs:[],ar:null,q:null,json:''};
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+// AR
+const arG=document.getElementById('ar-grid');
+ARS.forEach(r=>{const el=document.createElement('div');el.className='ar-item';el.id='ar-'+r.l.replace(':','-');el.onclick=()=>selAR(r.l);el.innerHTML=`<div style="height:22px;display:flex;align-items:center;justify-content:center"><div class="ar-box" style="width:${r.w}px;height:${r.h}px"></div></div><span class="ar-lbl">${r.l}</span>`;arG.appendChild(el);});
+function selAR(l){S.ar=l;document.querySelectorAll('.ar-item').forEach(e=>e.classList.remove('on'));document.getElementById('ar-'+l.replace(':','-')).classList.add('on');document.getElementById('ar-req').style.display='none';chkBtn();}
+function selQ(q){S.q=q;['1K','2K','4K'].forEach(x=>document.getElementById('q-'+x).classList.toggle('on',x===q));document.getElementById('q-req').style.display='none';chkBtn();}
+
+// Render slots + tags
+function render(){
+  const wrap=document.getElementById('slots-wrap');
+  wrap.innerHTML='';
+  S.imgs.forEach((img,i)=>{
+    const slot=document.createElement('div');
+    slot.className='slot hi';
+    slot.innerHTML=`<img src="${img.dataUrl}" alt="Image ${i+1}"><div class="slot-badge" style="background:${COLORS[i%COLORS.length]}">@Imagen${i+1}</div><button class="slot-rm" onclick="rmImg(${i})">×</button>`;
+    wrap.appendChild(slot);
+  });
+  const add=document.createElement('div');
+  add.className='add-slot';
+  add.onclick=()=>document.getElementById('fi').click();
+  add.addEventListener('dragover',e=>{e.preventDefault();add.style.borderColor=COLORS[0];});
+  add.addEventListener('dragleave',()=>add.style.borderColor='');
+  add.addEventListener('drop',e=>{e.preventDefault();add.style.borderColor='';loadFiles(e.dataTransfer.files);});
+  add.innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg><span class="add-txt">${S.imgs.length===0?'Add images':'Add more'}</span>`;
+  wrap.appendChild(add);
+
+  // Tags
+  const row=document.getElementById('tags-row');
+  if(S.imgs.length===0){row.innerHTML='<span class="tag-hint">Upload images to see tags</span>';return;}
+  row.innerHTML='';
+  S.imgs.forEach((_,i)=>{
+    const t=document.createElement('span');
+    t.className='tag-pill'; t.draggable=true; t.dataset.tag=`@Imagen${i+1}`;
+    t.style.cssText=`background:${LCOLORS[i%COLORS.length]};color:${COLORS[i%COLORS.length]};border-color:${COLORS[i%COLORS.length]}55`;
+    t.innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> @Imagen${i+1}`;
+    t.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',`@Imagen${i+1}`));
+    t.onclick=()=>insertTag(`@Imagen${i+1}`);
+    row.appendChild(t);
+  });
+  chkBtn();
+}
+
+function loadFiles(files){Array.from(files).forEach(f=>{if(!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=e=>{S.imgs.push({dataUrl:e.target.result,type:f.type,name:f.name});render();};r.readAsDataURL(f);});}
+function rmImg(i){S.imgs.splice(i,1);render();}
+
+// Textarea
+const area=document.getElementById('desc-area');
+area.addEventListener('input',chkBtn);
+area.addEventListener('dragover',e=>e.preventDefault());
+area.addEventListener('drop',e=>{e.preventDefault();const t=e.dataTransfer.getData('text/plain');if(t)insertTag(t);});
+
+function insertTag(tag){
+  const s=area.selectionStart,en=area.selectionEnd,v=area.value;
+  area.value=v.slice(0,s)+tag+' '+v.slice(en);
+  area.selectionStart=area.selectionEnd=s+tag.length+1;
+  area.focus();chkBtn();
+}
+
+function chkBtn(){
+  const desc=area.value.trim();
+  const ok=S.imgs.length>0&&desc&&S.ar&&S.q;
+  document.getElementById('gen-btn').disabled=!ok;
+  const h=document.getElementById('ghint');
+  if(!S.imgs.length)h.textContent='Upload at least one image';
+  else if(!desc)h.textContent='Add a description';
+  else if(!S.ar)h.textContent='Select an aspect ratio';
+  else if(!S.q)h.textContent='Select output quality';
+  else h.textContent='';
+}
+
+async function doGen(){
+  const desc=area.value.trim();
+  setSt('info','Analyzing images and description…');
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;
+  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin .8s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Generating…';
+
+  const imgList=S.imgs.map((_,i)=>`@Imagen${i+1}`).join(', ');
+
+  const sys=`You are an expert Higgsfield AI prompt engineer with deep knowledge of all prompt patterns:
+- Type A (Object/Scene): lighting ref + content ref, material physics, quantity constraints, imperfections[]
+- Type B (Style Transfer): identity lock + pose/aesthetic transfer, negative_prompt[], post_processing block
+- Type C (Identity + Outfit): identity lock + location + clothing refs, per-garment blocks, environment_lock, composition_lock
+- Type D (Technical Reconstruction): surface_physics block, PBR material blocks, contact_detail, post block (documentary grade, analog grain)
+- Type E (Narrative/Cinematic): material ref only, intent block, faces constraints, geometry_constraints[]
+- Type F (Multi-Identity Historical): characters[] array with height_m, order_strict, relative_scale, wardrobe strict_preservation
+- Type G (Environmental Transform): dominant scene_preservation block, geometry_constraints[], wardrobe_adjustment
+
+Analyze the uploaded images and user description to determine which pattern(s) apply, then generate a complete production-ready JSON prompt.
+
+CRITICAL: Output ONLY raw valid JSON. No markdown, no backticks, no explanation.
+CRITICAL: JSON must be entirely in English. Translate any non-English input.
+Always include maximum realism constraints: visible_pores, no_plastic_look, no_AI_smoothing, no_face_morphing.
+Use @Imagen1, @Imagen2, @Imagen3 etc. as image references throughout the JSON values.`;
+
+  const msg=`MODEL: NANO_BANANA_PRO
+ASPECT RATIO: ${S.ar}
+OUTPUT QUALITY: ${S.q}
+IMAGES PROVIDED: ${imgList}
+
+USER DESCRIPTION:
+${desc}
+
+Determine the prompt type(s) by analyzing the images and description. Generate the complete Higgsfield JSON prompt with all relevant blocks for the detected type.`;
+
+  const content=[{type:'text',text:msg}];
+  S.imgs.forEach((img,i)=>{
+    content.push({type:'text',text:`Image @Imagen${i+1}:`});
+    content.push({type:'image',source:{type:'base64',media_type:img.type||'image/jpeg',data:img.dataUrl.split(',')[1]}});
+  });
+
+  try{
+    const res=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:[{role:'user',content}]})});
+    setSt('info','Building prompt…');
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const raw=data.content.map(b=>b.text||'').join('');
+    const clean=raw.replace(/```json|```/g,'').trim();
+    let out;try{out=JSON.stringify(JSON.parse(clean),null,2);}catch{out=clean;}
+    S.json=out;setSt('');
+    document.getElementById('outbox').innerHTML=`<div class="out-card"><div class="out-hdr"><div class="out-lbl"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> JSON — ready for Higgsfield</div><button class="cp-btn" id="cpbtn" onclick="doCopy()">Copy JSON</button></div><pre>${esc(out)}</pre></div>`;
+  }catch(err){setSt('error','Error: '+err.message+' — Is the proxy running? Run: node proxy.js');}
+  finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generate JSON prompt';chkBtn();}
+}
+
+function setSt(t,m){const b=document.getElementById('stbox');if(!t||!m){b.innerHTML='';return;}b.innerHTML=`<div class="${t==='error'?'serr':'sinfo'}">${m}</div>`;}
+function doCopy(){navigator.clipboard.writeText(S.json).then(()=>{const b=document.getElementById('cpbtn');b.textContent='Copied';b.classList.add('ok');setTimeout(()=>{b.textContent='Copy JSON';b.classList.remove('ok');},2000);});}
+
+render();
+</script>
+</body>
+</html>
